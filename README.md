@@ -1,4 +1,4 @@
-# soft-play
+# tiny-taps
 
 Low-sensory, offline-friendly tap games for toddlers — gentle motion, soft sounds, no ads or timers.
 
@@ -17,7 +17,7 @@ Each game is a single, self-contained HTML file. No build step, no dependencies 
 Open the file directly on GitHub Pages, or locally:
 
 ```
-https://<your-username>.github.io/soft-play/bubbles.html
+https://<your-username>.github.io/tiny-taps/bubbles.html
 ```
 
 Static hosts that work well for dropping in a new HTML file: GitHub Pages (this repo), Netlify Drop, Vercel.
