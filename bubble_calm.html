@@ -322,6 +322,15 @@
   }
   document.addEventListener('pointerdown', goFullscreen, {once:true});
 
+  // ---- Trap the back button so it can't navigate away from the game ----
+  // Without this, Back leaves the page's only history entry and the WebAPK
+  // falls back to the manifest splash screen (icon on background_color)
+  // instead of the game.
+  history.pushState(null, '', location.href);
+  window.addEventListener('popstate', function(){
+    history.pushState(null, '', location.href);
+  });
+
   document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
   document.addEventListener('touchmove', function(e){ e.preventDefault(); }, {passive:false});
 

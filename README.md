@@ -1,4 +1,4 @@
-# tiny-taps
+# Neffster
 
 Low-sensory, offline-friendly tap games for toddlers — gentle motion, soft sounds, no ads or timers.
 
@@ -17,7 +17,7 @@ Each game is a single, self-contained HTML file. No build step, no dependencies 
 Open the file directly on GitHub Pages, or locally:
 
 ```
-https://ehneff.github.io/tiny-taps/bubbles.html
+https://ehneff.github.io/neffster/bubble_calm.html
 ```
 
 Static hosts that work well for dropping in a new HTML file: GitHub Pages (this repo), Netlify Drop, Vercel.
