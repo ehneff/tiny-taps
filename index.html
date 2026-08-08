@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Neffster</title>
+
+<link rel="manifest" href="hub-manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#EAF2FB">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Neffster">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #EAF2FB;
+    --ink: #5B6472;
+    --ink-soft: #8791A0;
+    --b1: #FFD1DC;
+    --b2: #C8F4DE;
+    --b3: #E3D9F7;
+    --b4: #FFF3C4;
+    --b5: #FFDCC2;
+  }
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select:none; -webkit-user-select:none; }
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background: var(--bg);
+    overscroll-behavior:none;
+    font-family:'Baloo 2', sans-serif;
+    touch-action: manipulation;
+  }
+  #wrap{
+    min-height:100vh;
+    padding: max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  h1{
+    color: var(--ink);
+    font-size: 32px;
+    margin: 8px 0 4px;
+  }
+  p.sub{
+    color: var(--ink-soft);
+    font-size: 15px;
+    margin: 0 0 28px;
+    text-align:center;
+  }
+  #grid{
+    width:100%;
+    max-width: 480px;
+    display:grid;
+    gap:16px;
+  }
+  .card{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:16px;
+    border-radius:24px;
+    background: rgba(255,255,255,0.6);
+    border: 3px solid rgba(255,255,255,0.9);
+    box-shadow: 0 6px 16px rgba(91,100,114,0.10);
+    text-decoration:none;
+    cursor:pointer;
+  }
+  .card .swatch{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    flex:none;
+    box-shadow: inset -6px -6px 14px rgba(255,255,255,0.5), inset 6px 6px 14px rgba(0,0,0,0.03);
+  }
+  .card .label{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .card .name{
+    color: var(--ink);
+    font-weight:700;
+    font-size:19px;
+  }
+  .card .desc{
+    color: var(--ink-soft);
+    font-size:13px;
+  }
+
+  /* Parental controls: visible, but requires a long press to actually
+     open — a toddler's quick taps won't trigger it. */
+  #parent-link{
+    position:fixed;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    right: max(18px, env(safe-area-inset-right));
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    background: rgba(255,255,255,0.6);
+    border: 3px solid rgba(255,255,255,0.9);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    color: var(--ink-soft);
+    text-decoration:none;
+    z-index:50;
+    overflow:hidden;
+  }
+  #parent-link .fill{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    background: var(--b3);
+    transform: scale(0);
+    transform-origin:center;
+    transition: transform 3000ms linear;
+  }
+  #parent-link.holding .fill{
+    transform: scale(1);
+  }
+  #parent-link span{
+    position:relative;
+    z-index:1;
+  }
+</style>
+</head>
+<body>
+
+<div id="wrap">
+  <h1>Neffster</h1>
+  <p class="sub">a growing collection of gentle games</p>
+  <div id="grid">
+    <a class="card" href="calm/soft-bubbles/soft-bubbles.html">
+      <div class="swatch" style="background:#FFD1DC"></div>
+      <div class="label">
+        <div class="name">Soft Bubbles</div>
+        <div class="desc">tap to pop drifting bubbles</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<a id="parent-link" href="parental-controls.html" title="hold to open parental controls">
+  <div class="fill"></div>
+  <span>&#9881;</span>
+</a>
+
+<script>
+(function(){
+  "use strict";
+  var link = document.getElementById('parent-link');
+  var HOLD_MS = 3000;
+  var timer = null;
+
+  function start(ev){
+    ev.preventDefault();
+    link.classList.add('holding');
+    timer = setTimeout(function(){
+      window.location.href = link.getAttribute('href');
+    }, HOLD_MS);
+  }
+  function cancel(){
+    clearTimeout(timer);
+    link.classList.remove('holding');
+  }
+
+  link.addEventListener('pointerdown', start);
+  link.addEventListener('pointerup', cancel);
+  link.addEventListener('pointerleave', cancel);
+  link.addEventListener('click', function(ev){ ev.preventDefault(); });
+})();
+</script>
+
+</body>
+</html>

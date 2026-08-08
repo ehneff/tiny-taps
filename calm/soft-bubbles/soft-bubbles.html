@@ -128,6 +128,18 @@
     opacity:0.55;
     z-index:5;
   }
+  #hub-link{
+    position:fixed;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    left: max(18px, env(safe-area-inset-left));
+    z-index:50;
+    color: var(--ink-soft);
+    font-size:13px;
+    text-decoration:none;
+    background: rgba(255,255,255,0.6);
+    padding:6px 14px;
+    border-radius:999px;
+  }
 </style>
 </head>
 <body>
@@ -139,6 +151,7 @@
 
 <div id="stage"></div>
 <div id="hint">soft bubbles · tap to pop</div>
+<a id="hub-link" href="../../index.html">‹ hub</a>
 <div id="parent-corner" title="parent: long-press to pause"></div>
 
 <script>
@@ -322,14 +335,17 @@
   }
   document.addEventListener('pointerdown', goFullscreen, {once:true});
 
-  // ---- Trap the back button so it can't navigate away from the game ----
-  // Without this, Back leaves the page's only history entry and the WebAPK
-  // falls back to the manifest splash screen (icon on background_color)
-  // instead of the game.
-  history.pushState(null, '', location.href);
-  window.addEventListener('popstate', function(){
+  // ---- Trap the back button, but only when there's nowhere to go back to ----
+  // If this page was opened directly (installed shortcut, history.length 1),
+  // Back would leave the page's only history entry and the WebAPK falls back
+  // to the manifest splash screen instead of the game — so we swallow it.
+  // If we got here from the hub (history.length > 1), let Back return there.
+  if(history.length <= 1){
     history.pushState(null, '', location.href);
-  });
+    window.addEventListener('popstate', function(){
+      history.pushState(null, '', location.href);
+    });
+  }
 
   document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
   document.addEventListener('touchmove', function(e){ e.preventDefault(); }, {passive:false});

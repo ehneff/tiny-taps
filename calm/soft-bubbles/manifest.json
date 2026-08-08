@@ -1,7 +1,7 @@
 {
   "name": "Soft Bubbles",
   "short_name": "Bubbles",
-  "start_url": "./bubble_calm.html",
+  "start_url": "./soft-bubbles.html",
   "scope": "./",
   "display": "fullscreen",
   "orientation": "any",
