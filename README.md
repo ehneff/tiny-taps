@@ -42,6 +42,12 @@ https://ehneff.github.io/neffster/calm/soft-bubbles/soft-bubbles.html   (a singl
 
 Static hosts that work well for dropping in a new HTML file: GitHub Pages (this repo), Netlify Drop, Vercel.
 
+## Offline support
+
+A service worker (`sw.js`, registered from every page) makes the site actually usable with no internet connection, not just ad-free/account-free. It's network-first: whenever a page or game is opened online, the latest version is fetched and quietly cached; if a later fetch fails because there's no connection, the cached copy is served instead.
+
+The practical implication: **a page needs to be opened at least once while online before it'll work offline.** Once the hub and a game have both been visited once with a connection, they'll keep working without one — including the Google Fonts stylesheet and font file, which get cached the same way.
+
 ## Adding to the home screen
 
 **Android (Chrome):**
@@ -82,3 +88,4 @@ Adding to the home screen makes the game *look* like an app, but a toddler can s
 3. Add a row to the **Games** table above.
 4. Add an entry to `games.json` (id, name, path, desc, color, and `showsBattery` if it has a battery indicator) — this is what makes it show up in the hub and in the Parental Controls game list.
 5. Keep it dependency-free where possible so it stays portable and easy to self-host.
+6. Nothing to change in `sw.js` — offline caching happens automatically the first time a page is visited online (see **Offline support** above), and doesn't need to know about individual games ahead of time.
