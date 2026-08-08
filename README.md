@@ -86,10 +86,10 @@ Adding to the home screen makes the game *look* like an app, but a toddler can s
 ## Adding a new game
 
 1. Create a new folder under `calm/` or `learn/`, named after the game (e.g. `learn/shape-match/`).
-2. Inside it, add the self-contained `.html` file, its own `manifest.json`, its own `icon-192.png`/`icon-512.png`, and a `version.txt` containing just a version string (e.g. `1`) — copy the pattern in `calm/soft-bubbles/`.
+2. Inside it, add the self-contained `.html` file, its own `manifest.json`, its own `icon-192.png`/`icon-512.png`, and a `version.txt` starting at `0.0.1` — copy the pattern in `calm/soft-bubbles/`.
 3. Add a row to the **Games** table above.
 4. Add an entry to `games.json` (id, name, path, desc, color, and `showsBattery` if it has a battery indicator) — this is what makes it show up in the hub, the Parental Controls game list, and the service worker's pre-caching.
 5. Keep it dependency-free where possible so it stays portable and easy to self-host.
 6. Nothing to change in `sw.js` itself — new games are picked up automatically from `games.json`.
 
-**Updating an existing game:** bump its `version.txt` (e.g. `1` → `2`) whenever you change its files. This is what tells the hub's background refresh that the game actually changed and needs re-caching — **if you forget, a device that already has the old version cached offline won't pick up your change** via the hub, even though anyone who opens that game directly while online always gets the latest version regardless. If a game has no `version.txt` at all, it's always refreshed on every hub visit (safe default, just less bandwidth-efficient).
+**Updating an existing game:** bump its `version.txt` (`major.minor.patch`, e.g. `0.0.1` → `0.0.2`) whenever you change its files — any change to the string works, since the service worker just checks whether it's different from what's cached, not whether it's "newer." This is what tells the hub's background refresh that the game actually changed and needs re-caching — **if you forget, a device that already has the old version cached offline won't pick up your change** via the hub, even though anyone who opens that game directly while online always gets the latest version regardless. If a game has no `version.txt` at all, it's always refreshed on every hub visit (safe default, just less bandwidth-efficient).
