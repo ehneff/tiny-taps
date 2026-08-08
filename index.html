@@ -137,21 +137,53 @@
 <div id="wrap">
   <h1>Neffster</h1>
   <p class="sub">a growing collection of gentle games</p>
-  <div id="grid">
-    <a class="card" href="calm/soft-bubbles/soft-bubbles.html">
-      <div class="swatch" style="background:#FFD1DC"></div>
-      <div class="label">
-        <div class="name">Soft Bubbles</div>
-        <div class="desc">tap to pop drifting bubbles</div>
-      </div>
-    </a>
-  </div>
+  <div id="grid"></div>
 </div>
 
 <div id="parent-link" data-href="parental-controls.html" title="hold to open parental controls">
   <div class="fill"></div>
   <span>&#9881;</span>
 </div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SETTINGS_KEY = 'neffster-settings';
+  function loadSettings(){
+    try{
+      var raw = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+      return {
+        lockToGame: !!(raw && raw.lockToGame),
+        hiddenGames: (raw && Array.isArray(raw.hiddenGames)) ? raw.hiddenGames : [],
+        showBattery: !(raw && raw.showBattery === false)
+      };
+    }catch(e){
+      return { lockToGame:false, hiddenGames:[], showBattery:true };
+    }
+  }
+
+  var grid = document.getElementById('grid');
+  fetch('games.json').then(function(r){ return r.json(); }).then(function(games){
+    var settings = loadSettings();
+    var visible = games.filter(function(g){ return settings.hiddenGames.indexOf(g.id) === -1; });
+    visible.forEach(function(g){
+      var a = document.createElement('a');
+      a.className = 'card';
+      a.href = g.path;
+      a.innerHTML =
+        '<div class="swatch" style="background:' + g.color + '"></div>' +
+        '<div class="label">' +
+          '<div class="name"></div>' +
+          '<div class="desc"></div>' +
+        '</div>';
+      a.querySelector('.name').textContent = g.name;
+      a.querySelector('.desc').textContent = g.desc;
+      grid.appendChild(a);
+    });
+  }).catch(function(){ /* offline first load with no cache yet — grid just stays empty */ });
+})();
+</script>
 
 <script>
 (function(){

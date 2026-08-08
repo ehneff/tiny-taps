@@ -19,11 +19,17 @@ Games are organized into two top-level categories:
 
 ## The hub
 
-`index.html` is a simple menu that lists every game as a tappable card. It's the recommended entry point once you have more than one game — install *it* to the home screen instead of an individual game, and use it to jump between games. Each game also has a small "‹ hub" link in its top-left corner to get back.
+`index.html` is a simple menu that lists every game as a tappable card, built from `games.json`. It's the recommended entry point once you have more than one game — install *it* to the home screen instead of an individual game, and use it to jump between games. Each game also has a small "‹ hub" link in its bottom-left corner to get back.
 
 You can still open or install any individual game's URL directly if you only want that one game on the home screen (see below).
 
-The hub also has a **parental controls** entry — a small gear icon in the bottom-right corner. It requires a 3-second long-press to open (a quick tap does nothing), so it's not something a toddler can trigger by accident. It currently links to lock-screen setup instructions (Screen Pinning / Guided Access) and will grow to hold more settings over time.
+### Parental controls
+
+The hub has a **parental controls** entry — a gear icon in the bottom-right corner. It requires a 3-second long-press to open (a quick tap does nothing), so it's not something a toddler can trigger by accident. Settings are stored in `localStorage` on that device only (not synced anywhere), under the key `neffster-settings`:
+
+- **Lock to one game** — once switched on, the *next* game opened stays locked in: the "‹ hub" link disappears and Back can't leave it. Getting back out (to switch the lock off again) still works, but the same way — the hub link becomes a hidden long-press spot (bottom-left corner, 3 seconds) instead of vanishing entirely, so it's not a dead end.
+- **Games shown in hub** — toggle any game off to hide its card from the hub without deleting anything.
+- **Battery status** — show or hide the battery indicator in games that have one.
 
 ## Running a game
 
@@ -74,5 +80,5 @@ Adding to the home screen makes the game *look* like an app, but a toddler can s
 1. Create a new folder under `calm/` or `learn/`, named after the game (e.g. `learn/shape-match/`).
 2. Inside it, add the self-contained `.html` file, its own `manifest.json`, and its own `icon-192.png`/`icon-512.png` — copy the pattern in `calm/soft-bubbles/`.
 3. Add a row to the **Games** table above.
-4. Add a matching card to `index.html`'s game grid so it shows up in the hub.
+4. Add an entry to `games.json` (id, name, path, desc, color, and `showsBattery` if it has a battery indicator) — this is what makes it show up in the hub and in the Parental Controls game list.
 5. Keep it dependency-free where possible so it stays portable and easy to self-host.

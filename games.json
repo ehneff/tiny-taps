@@ -1,0 +1,10 @@
+[
+  {
+    "id": "soft-bubbles",
+    "name": "Soft Bubbles",
+    "path": "calm/soft-bubbles/soft-bubbles.html",
+    "desc": "tap to pop drifting bubbles",
+    "color": "#FFD1DC",
+    "showsBattery": true
+  }
+]

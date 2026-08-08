@@ -127,6 +127,7 @@
     font-size:12px;
     opacity:0.55;
     z-index:5;
+    pointer-events:none;
   }
   #hub-link{
     position:fixed;
@@ -157,6 +158,19 @@
 <script>
 (function(){
   "use strict";
+
+  // ---- Parental settings (shared with the hub, stored per-device) ----
+  var SETTINGS_KEY = 'neffster-settings';
+  var settings;
+  try{
+    var raw = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+    settings = {
+      lockToGame: !!(raw && raw.lockToGame),
+      showBattery: !(raw && raw.showBattery === false)
+    };
+  }catch(e){
+    settings = { lockToGame:false, showBattery:true };
+  }
 
   var stage = document.getElementById('stage');
   var colors = ['#FFD1DC','#C8F4DE','#E3D9F7','#FFF3C4','#FFDCC2'];
@@ -291,40 +305,44 @@
   window.addEventListener('resize', function(){});
 
   // ---- Battery status ----
-  var fillEl = document.getElementById('battery-fill');
-  var labelEl = document.getElementById('battery-label');
+  if(!settings.showBattery){
+    document.getElementById('battery-wrap').style.display = 'none';
+  } else {
+    var fillEl = document.getElementById('battery-fill');
+    var labelEl = document.getElementById('battery-label');
 
-  function updateBatteryUI(battery){
-    var pct = Math.round(battery.level * 100);
-    fillEl.style.width = pct + '%';
-    var color, text;
-    if(battery.charging){
-      color = pct >= 40 ? 'var(--charge-good)' : 'var(--charge-slow)';
-      text = pct + '% · charging';
-      fillEl.classList.add('charging');
+    var updateBatteryUI = function(battery){
+      var pct = Math.round(battery.level * 100);
+      fillEl.style.width = pct + '%';
+      var color, text;
+      if(battery.charging){
+        color = pct >= 40 ? 'var(--charge-good)' : 'var(--charge-slow)';
+        text = pct + '% · charging';
+        fillEl.classList.add('charging');
+      } else {
+        color = 'var(--charge-none)';
+        text = pct + '% · unplugged';
+        fillEl.classList.remove('charging');
+      }
+      fillEl.style.background = color;
+      labelEl.textContent = text;
+    };
+
+    if(navigator.getBattery){
+      navigator.getBattery().then(function(battery){
+        updateBatteryUI(battery);
+        battery.addEventListener('levelchange', function(){ updateBatteryUI(battery); });
+        battery.addEventListener('chargingchange', function(){ updateBatteryUI(battery); });
+      }).catch(function(){
+        labelEl.textContent = 'battery status unavailable';
+        fillEl.style.width = '100%';
+        fillEl.style.background = 'var(--charge-none)';
+      });
     } else {
-      color = 'var(--charge-none)';
-      text = pct + '% · unplugged';
-      fillEl.classList.remove('charging');
-    }
-    fillEl.style.background = color;
-    labelEl.textContent = text;
-  }
-
-  if(navigator.getBattery){
-    navigator.getBattery().then(function(battery){
-      updateBatteryUI(battery);
-      battery.addEventListener('levelchange', function(){ updateBatteryUI(battery); });
-      battery.addEventListener('chargingchange', function(){ updateBatteryUI(battery); });
-    }).catch(function(){
       labelEl.textContent = 'battery status unavailable';
       fillEl.style.width = '100%';
       fillEl.style.background = 'var(--charge-none)';
-    });
-  } else {
-    labelEl.textContent = 'battery status unavailable';
-    fillEl.style.width = '100%';
-    fillEl.style.background = 'var(--charge-none)';
+    }
   }
 
   // ---- Try to keep focus / stay fullscreen ----
@@ -335,12 +353,42 @@
   }
   document.addEventListener('pointerdown', goFullscreen, {once:true});
 
-  // ---- Trap the back button, but only when there's nowhere to go back to ----
-  // If this page was opened directly (installed shortcut, history.length 1),
-  // Back would leave the page's only history entry and the WebAPK falls back
-  // to the manifest splash screen instead of the game — so we swallow it.
-  // If we got here from the hub (history.length > 1), let Back return there.
-  if(history.length <= 1){
+  // ---- When locked in, turn the hub link into a hidden long-press escape ----
+  // A toddler can't hold a spot for 3 seconds on purpose; a parent who knows
+  // it's there can still get back to Parental Controls to switch the lock
+  // back off. Removing the link entirely would leave no way back in short
+  // of an OS-level unpin/exit.
+  if(settings.lockToGame){
+    var hubLink = document.getElementById('hub-link');
+    if(hubLink){
+      hubLink.textContent = '';
+      hubLink.removeAttribute('href');
+      hubLink.style.background = 'transparent';
+      hubLink.style.width = '70px';
+      hubLink.style.height = '70px';
+      hubLink.style.padding = '0';
+      hubLink.style.borderRadius = '0';
+      var hubTimer = null;
+      hubLink.addEventListener('pointerdown', function(){
+        hubTimer = setTimeout(function(){
+          window.location.href = '../../index.html';
+        }, 3000);
+      });
+      hubLink.addEventListener('pointerup', function(){ clearTimeout(hubTimer); });
+      hubLink.addEventListener('pointerleave', function(){ clearTimeout(hubTimer); });
+    }
+  }
+
+  // ---- Trap the back button ----
+  // If locked in via parental settings, always swallow Back — there's no
+  // way out except switching the lock off from Parental Controls again.
+  // Otherwise, only trap it when there's nowhere to go back to: if this
+  // page was opened directly (installed shortcut, history.length 1), Back
+  // would leave the page's only history entry and the WebAPK falls back to
+  // the manifest splash screen instead of the game, so we swallow it there
+  // too. If we got here from the hub (history.length > 1) and we're not
+  // locked, let Back return there.
+  if(settings.lockToGame || history.length <= 1){
     history.pushState(null, '', location.href);
     window.addEventListener('popstate', function(){
       history.pushState(null, '', location.href);

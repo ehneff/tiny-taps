@@ -69,6 +69,69 @@
     margin: 8px 0 0;
     padding-left: 20px;
   }
+  .section .hint{
+    font-size:13px;
+    opacity:0.8;
+    margin-top:6px;
+  }
+
+  /* ---- toggle rows ---- */
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 0;
+  }
+  .toggle-row + .toggle-row{
+    border-top: 1px solid rgba(91,100,114,0.12);
+  }
+  .toggle-row .toggle-label{
+    color: var(--ink);
+    font-size:15px;
+    font-weight:700;
+  }
+  .switch{
+    position:relative;
+    width:48px;
+    height:28px;
+    flex:none;
+  }
+  .switch input{
+    opacity:0;
+    width:100%;
+    height:100%;
+    margin:0;
+    position:absolute;
+    cursor:pointer;
+    z-index:1;
+  }
+  .switch .track{
+    position:absolute;
+    inset:0;
+    background: rgba(91,100,114,0.25);
+    border-radius:999px;
+    transition: background 0.2s ease;
+  }
+  .switch .thumb{
+    position:absolute;
+    top:3px; left:3px;
+    width:22px; height:22px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 2px 6px rgba(91,100,114,0.25);
+    transition: transform 0.2s ease;
+    pointer-events:none;
+  }
+  .switch input:checked + .track{
+    background: var(--b3);
+  }
+  .switch input:checked ~ .thumb{
+    transform: translateX(20px);
+  }
+  #game-list .toggle-row:first-child{
+    padding-top:0;
+  }
 </style>
 </head>
 <body>
@@ -76,7 +139,38 @@
 <div id="wrap">
   <a class="back" href="index.html">‹ hub</a>
   <h1>Parental Controls</h1>
-  <p class="sub">More settings are coming soon. For now, here's how to lock a device to Neffster.</p>
+  <p class="sub">Settings are saved on this device only.</p>
+
+  <div class="section">
+    <h2>Lock to one game</h2>
+    <div class="toggle-row">
+      <span class="toggle-label">Lock in after opening a game</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle-lock">
+        <span class="track"></span>
+        <span class="thumb"></span>
+      </label>
+    </div>
+    <p class="hint">When on, the "‹ hub" link is hidden and the Back button can't leave the game — whichever game is opened is locked in until this is switched off again.</p>
+  </div>
+
+  <div class="section">
+    <h2>Games shown in hub</h2>
+    <div id="game-list"></div>
+    <p class="hint">Turn a game off to hide it from the hub without deleting it.</p>
+  </div>
+
+  <div class="section">
+    <h2>Battery status</h2>
+    <div class="toggle-row">
+      <span class="toggle-label">Show battery indicator in games</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle-battery">
+        <span class="track"></span>
+        <span class="thumb"></span>
+      </label>
+    </div>
+  </div>
 
   <div class="section">
     <h2>Android — Screen Pinning</h2>
@@ -101,6 +195,76 @@
     <p>In Soft Bubbles, long-press the bottom-right corner of the screen for 3 seconds to pause or resume bubble spawning.</p>
   </div>
 </div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SETTINGS_KEY = 'neffster-settings';
+
+  function loadSettings(){
+    try{
+      var raw = JSON.parse(localStorage.getItem(SETTINGS_KEY));
+      return {
+        lockToGame: !!(raw && raw.lockToGame),
+        hiddenGames: (raw && Array.isArray(raw.hiddenGames)) ? raw.hiddenGames : [],
+        showBattery: !(raw && raw.showBattery === false)
+      };
+    }catch(e){
+      return { lockToGame:false, hiddenGames:[], showBattery:true };
+    }
+  }
+  function saveSettings(s){
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  }
+
+  var settings = loadSettings();
+
+  var lockToggle = document.getElementById('toggle-lock');
+  var batteryToggle = document.getElementById('toggle-battery');
+  lockToggle.checked = settings.lockToGame;
+  batteryToggle.checked = settings.showBattery;
+
+  lockToggle.addEventListener('change', function(){
+    settings.lockToGame = lockToggle.checked;
+    saveSettings(settings);
+  });
+  batteryToggle.addEventListener('change', function(){
+    settings.showBattery = batteryToggle.checked;
+    saveSettings(settings);
+  });
+
+  var gameList = document.getElementById('game-list');
+  fetch('games.json').then(function(r){ return r.json(); }).then(function(games){
+    games.forEach(function(g){
+      var row = document.createElement('div');
+      row.className = 'toggle-row';
+      row.innerHTML =
+        '<span class="toggle-label"></span>' +
+        '<label class="switch">' +
+          '<input type="checkbox">' +
+          '<span class="track"></span>' +
+          '<span class="thumb"></span>' +
+        '</label>';
+      row.querySelector('.toggle-label').textContent = g.name;
+      var input = row.querySelector('input');
+      input.checked = settings.hiddenGames.indexOf(g.id) === -1;
+      input.addEventListener('change', function(){
+        var idx = settings.hiddenGames.indexOf(g.id);
+        if(input.checked && idx > -1){
+          settings.hiddenGames.splice(idx, 1);
+        } else if(!input.checked && idx === -1){
+          settings.hiddenGames.push(g.id);
+        }
+        saveSettings(settings);
+      });
+      gameList.appendChild(row);
+    });
+  }).catch(function(){
+    gameList.textContent = 'Game list unavailable offline.';
+  });
+})();
+</script>
 
 </body>
 </html>
