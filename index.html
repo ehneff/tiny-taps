@@ -213,7 +213,21 @@
 
 <script>
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(function(){});
+  navigator.serviceWorker.register('./sw.js').then(function(){
+    // Ask the service worker to re-fetch every game's assets, so
+    // updates to games that aren't individually opened still reach
+    // this device whenever the hub is opened online.
+    function refreshAll(){
+      if(navigator.serviceWorker.controller){
+        navigator.serviceWorker.controller.postMessage({ type: 'REFRESH_ALL' });
+      }
+    }
+    if(navigator.serviceWorker.controller){
+      refreshAll();
+    } else {
+      navigator.serviceWorker.addEventListener('controllerchange', refreshAll, { once:true });
+    }
+  }).catch(function(){});
 }
 </script>
 

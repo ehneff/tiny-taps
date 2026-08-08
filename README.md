@@ -44,9 +44,11 @@ Static hosts that work well for dropping in a new HTML file: GitHub Pages (this 
 
 ## Offline support
 
-A service worker (`sw.js`, registered from every page) makes the site actually usable with no internet connection, not just ad-free/account-free. It's network-first: whenever a page or game is opened online, the latest version is fetched and quietly cached; if a later fetch fails because there's no connection, the cached copy is served instead.
+A service worker (`sw.js`, registered from every page) makes the site actually usable with no internet connection, not just ad-free/account-free.
 
-The practical implication: **a page needs to be opened at least once while online before it'll work offline.** Once the hub and a game have both been visited once with a connection, they'll keep working without one — including the Google Fonts stylesheet and font file, which get cached the same way.
+- **Any page you open while online** is fetched fresh and cached; if a later fetch fails because there's no connection, the cached copy is served instead. This covers the Google Fonts stylesheet and font file too.
+- **Opening the hub while online also proactively pre-caches every game** listed in `games.json` — its HTML, manifest, and icons — not just whatever's actually been clicked into. So installing Neffster and opening the hub once, online, is enough to make the *whole* catalog work offline afterward, not just games that happened to be opened individually.
+- **Updating an already-cached game** only happens if that game's `version.txt` has changed since the last time the hub refreshed it — see **Adding a new game** below. This keeps a hub visit cheap (it doesn't re-download every game's files every single time) at the cost of needing to remember to bump the version file when a game actually changes.
 
 ## Adding to the home screen
 
@@ -84,8 +86,10 @@ Adding to the home screen makes the game *look* like an app, but a toddler can s
 ## Adding a new game
 
 1. Create a new folder under `calm/` or `learn/`, named after the game (e.g. `learn/shape-match/`).
-2. Inside it, add the self-contained `.html` file, its own `manifest.json`, and its own `icon-192.png`/`icon-512.png` — copy the pattern in `calm/soft-bubbles/`.
+2. Inside it, add the self-contained `.html` file, its own `manifest.json`, its own `icon-192.png`/`icon-512.png`, and a `version.txt` containing just a version string (e.g. `1`) — copy the pattern in `calm/soft-bubbles/`.
 3. Add a row to the **Games** table above.
-4. Add an entry to `games.json` (id, name, path, desc, color, and `showsBattery` if it has a battery indicator) — this is what makes it show up in the hub and in the Parental Controls game list.
+4. Add an entry to `games.json` (id, name, path, desc, color, and `showsBattery` if it has a battery indicator) — this is what makes it show up in the hub, the Parental Controls game list, and the service worker's pre-caching.
 5. Keep it dependency-free where possible so it stays portable and easy to self-host.
-6. Nothing to change in `sw.js` — offline caching happens automatically the first time a page is visited online (see **Offline support** above), and doesn't need to know about individual games ahead of time.
+6. Nothing to change in `sw.js` itself — new games are picked up automatically from `games.json`.
+
+**Updating an existing game:** bump its `version.txt` (e.g. `1` → `2`) whenever you change its files. This is what tells the hub's background refresh that the game actually changed and needs re-caching — **if you forget, a device that already has the old version cached offline won't pick up your change** via the hub, even though anyone who opens that game directly while online always gets the latest version regardless. If a game has no `version.txt` at all, it's always refreshed on every hub visit (safe default, just less bandwidth-efficient).
